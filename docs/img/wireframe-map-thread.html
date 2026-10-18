@@ -1,0 +1,113 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Code map wireframe</title>
+<style>
+  /* Rough wireframe: system fonts, gray borders, no color except where meaning needs it
+     (amber = stale, terracotta-ish dark border = selected). */
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px -apple-system, system-ui, sans-serif; color: #222; background: #fff; }
+  .win { display: grid; grid-template-columns: 44px 360px 1fr; height: 880px; border: 1px solid #999; }
+  .rail { border-right: 1px solid #bbb; background: #f2f2f2; padding-top: 10px; text-align: center; color: #888; }
+  .rail div { margin: 12px 0; }
+  .panel { border-right: 1px solid #bbb; padding: 12px; overflow: hidden; }
+  .panel h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #666; margin: 0 0 8px; }
+  .tabs { display: flex; gap: 0; border: 1px solid #bbb; margin-bottom: 12px; }
+  .tabs span { flex: 1; text-align: center; padding: 5px; border-right: 1px solid #bbb; }
+  .tabs span:last-child { border-right: 0; }
+  .tabs .on { font-weight: 600; text-decoration: underline; }
+  /* Map: real structure from language server, grouped into <=8 boxes by the LLM. Each box cites files. */
+  .map { position: relative; height: 470px; border: 1px dashed #bbb; }
+  .box { position: absolute; width: 150px; border: 1.5px solid #555; border-radius: 6px; padding: 6px 8px; background: #fff; }
+  .box b { display: block; font-size: 12.5px; }
+  .box small { color: #777; }
+  .box.sel { border: 3px solid #8a3a20; }
+  .box.stale { border: 2px dashed #b8860b; background: #fff6dc; }
+  .chip { display: inline-block; border: 1px solid #aaa; border-radius: 9px; padding: 0 6px; font-size: 11px; margin-top: 3px; }
+  svg { position: absolute; inset: 0; }
+  .legend { margin-top: 10px; color: #666; font-size: 12px; line-height: 1.6; }
+  .whyhere { margin-top: 12px; border-top: 1px solid #ccc; padding-top: 8px; color: #444; }
+  /* Editor */
+  .editor { display: flex; flex-direction: column; }
+  .filetabs { border-bottom: 1px solid #bbb; padding: 6px 10px; background: #f6f6f6; }
+  .code { font: 12.5px ui-monospace, Menlo, monospace; padding: 8px 0; line-height: 1.6; }
+  .ln { display: flex; }
+  .ln .n { width: 46px; text-align: right; padding-right: 10px; color: #aaa; }
+  .ln .g { width: 14px; color: #8a3a20; }
+  .ln.hl { background: #f1f1f1; }
+  /* Comments API thread: predict, then reveal. */
+  .thread { margin: 6px 20px 6px 70px; border: 1px solid #888; border-radius: 6px; padding: 10px 12px; font: 13px -apple-system, system-ui, sans-serif; }
+  .row { margin-bottom: 10px; }
+  .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #777; }
+  .guess { border: 1px dashed #999; padding: 6px 8px; margin-top: 3px; }
+  .draft { font: 17px Georgia, serif; margin-top: 3px; }
+  .cite { display: inline-block; border: 1px solid #888; padding: 0 5px; font: 11px ui-monospace, monospace; margin-right: 4px; }
+  .diff { border-left: 3px solid #8a3a20; padding: 4px 8px; margin-top: 6px; }
+  .status { font-size: 12px; color: #555; }
+  .btns span { display: inline-block; border: 1px solid #777; padding: 3px 10px; margin-right: 6px; border-radius: 4px; }
+  .btns .primary { border-width: 2px; font-weight: 600; }
+</style></head>
+<body>
+<div class="win">
+  <div class="rail"><div>Files</div><div>Search</div><div>Git</div><div><b>Map</b></div></div>
+
+  <!-- LEFT: Map panel. The front door. Zoom level 1 of 3 (Map -> Part -> Line). -->
+  <div class="panel">
+    <h2>learningtool · Map</h2>
+    <div class="tabs"><span class="on">Map</span><span>Notes (14)</span><span>Decisions (6)</span></div>
+    <div class="map">
+      <svg width="336" height="470">
+        <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker></defs>
+        <line x1="90" y1="62" x2="90" y2="104" stroke="#555" marker-end="url(#a)"/>
+        <line x1="90" y1="158" x2="90" y2="200" stroke="#555" marker-end="url(#a)"/>
+        <line x1="90" y1="254" x2="90" y2="296" stroke="#555" marker-end="url(#a)"/>
+        <line x1="90" y1="350" x2="90" y2="392" stroke="#555" marker-end="url(#a)"/>
+        <line x1="166" y1="228" x2="186" y2="228" stroke="#555" stroke-dasharray="3 3" marker-end="url(#a)"/>
+      </svg>
+      <div class="box" style="left:14px;top:10px"><b>Extract PDF</b><small>extract.py · 2 files</small><br><span class="chip">2 notes</span></div>
+      <div class="box stale" style="left:14px;top:106px"><b>Generate lesson (LLM)</b><small>llm.py, generate.py</small><br><span class="chip">3 notes · 1 stale</span></div>
+      <div class="box sel" style="left:14px;top:202px"><b>Audit + check claims</b><small>check.py, audit.py</small><br><span class="chip">4 notes</span></div>
+      <div class="box" style="left:188px;top:202px"><b>Concept memory</b><small>memory.py</small><br><span class="chip">0 notes</span></div>
+      <div class="box" style="left:14px;top:298px"><b>Render player</b><small>render.py · player/</small><br><span class="chip">3 notes</span></div>
+      <div class="box" style="left:14px;top:394px"><b>Open in browser</b><small>cli.py</small><br><span class="chip">2 notes</span></div>
+    </div>
+    <div class="legend">
+      Click a box → jumps to its code.<br>
+      <span style="border:2px dashed #b8860b;padding:0 4px;background:#fff6dc">amber dashed</span> = code changed under a note since you checked it.
+    </div>
+    <div class="whyhere"><b>Audit + check claims</b> · what it does (checked by you)<br>
+      Matches each lesson claim's quote to a paper span; unmatched claims are removed and named, never hidden.<br>
+      <span class="cite">check.py</span><span class="cite">audit.py</span></div>
+  </div>
+
+  <!-- CENTER: Editor with gutter notes. Zoom levels 2-3 (Part -> Line). -->
+  <div class="editor">
+    <div class="filetabs">check.py — learningtool</div>
+    <div class="code">
+      <div class="ln"><span class="n">40</span><span class="g"></span>&nbsp;</div>
+      <div class="ln hl"><span class="n">42</span><span class="g">●</span>def check_claims(lesson, spans):</div>
+      <div class="ln hl"><span class="n">43</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;removed = []</div>
+      <div class="ln hl"><span class="n">44</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;for claim in lesson.claims:</div>
+      <div class="ln hl"><span class="n">45</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;span = find_span(claim.quote, spans)</div>
+      <div class="ln hl"><span class="n">46</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if span is None:</div>
+      <div class="ln hl"><span class="n">47</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;removed.append(claim)</div>
+      <div class="ln hl"><span class="n">48</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;continue</div>
+      <div class="ln hl"><span class="n">49</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;claim.status = "cited"</div>
+      <div class="ln hl"><span class="n">50</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;lesson.claims = [c for c in lesson.claims if c not in removed]</div>
+      <div class="ln hl"><span class="n">51</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;lesson.amber_strip = [c.text for c in removed]</div>
+      <div class="ln hl"><span class="n">52</span><span class="g"></span>&nbsp;&nbsp;&nbsp;&nbsp;return lesson</div>
+
+      <!-- Predict-then-reveal: the guess is optional; skipping keeps status "drafted". -->
+      <div class="thread">
+        <div class="row"><div class="lbl">Your guess (optional · or "just show me")</div>
+          <div class="guess">Drops any claim whose quote isn't found in the paper.</div></div>
+        <div class="row"><div class="lbl">Draft explanation</div>
+          <div class="draft">Marks each claim "cited" when its quote matches a paper span; unmatched claims are removed <i>and listed in the amber strip</i>.</div>
+          <div><span class="cite">L44–49</span><span class="cite">L50–51</span></div>
+          <div class="diff"><b>You missed:</b> removed claims aren't silently dropped; they're named for the reader (L51).</div></div>
+        <div class="row status">Status if saved: <b>checked by you</b> · anchored to L42–52 · never "verified"</div>
+        <div class="btns"><span class="primary">Save note</span><span>Edit</span><span>Discard</span><span>Log as decision…</span></div>
+      </div>
+      <div class="ln"><span class="n">53</span><span class="g"></span>&nbsp;</div>
+    </div>
+  </div>
+</div>
+</body></html>
